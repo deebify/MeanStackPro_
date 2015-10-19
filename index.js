@@ -1,11 +1,44 @@
 var express = require('express'),
     app = express(),
-    path = require('path');
+    path = require('path'),
+    bodyParser = require('body-parser'),
+    morgan = require('morgan'),
+    mongoose = require('mongoose');
+/**
+ * Setting up db
+ */
+mongoose.connect('mongodb://localhost:27017/meandb');
+//Let app use the package
 
+//Middleware
+app.use(morgan('dev')); // the morgan console
+//for body parser and post requests
+app.use(bodyParser.urlencoded({extended:1}));
+app.use(bodyParser.json());
 
+//for CORS
+app.use(function(req,res,next){
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
+    next();
+});
+
+//---------------------------------------------------
 app.get('/',function(req,res){
     res.status(200).sendFile(path.join(__dirname+'/index.html'))
 });
+
+/**
+ * My Routes and let app use it
+ */
+var api = require('./routes/api_routes.js').APIs_router;
+app.use('/api',api);
+/**
+ * Calling and Configuring our package
+ * App Configuration
+ */
+
 
 //Routes is to Sections the URLs in Application
 //using Express Router ...
@@ -96,12 +129,14 @@ app.use('/admin',admin_r);
  */
 // TODO ---   Multiple Actions (GET/POST/PUT/DELETE) to single endpoint router name
 
-//validation middleware
+//validation TODO middleware
 app.use(function(req,res,next){
     //Do some validation to the router.
     console.log('Route .. '+req.url);
     next();
 });
+
+
 app.route('/login')
     .get(function(req,res,next){
        res.status(200).send('Login to the System ...');
@@ -109,5 +144,6 @@ app.route('/login')
     .post(function(req,res,next){
        res.status(200).send('Posted to the system ..');
     });
+
 
 app.listen(8080);
